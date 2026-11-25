@@ -15,11 +15,11 @@ reference-aware keyframes, motion shots, and music, then assembles the final
 cuts with ducked music, loudness normalization, burned-in English captions,
 and a selectable subtitle stream.
 
-The project files and final media are present locally. The repository has not
-been pushed, and no public video or walkthrough links are recorded here. Most
-importantly, the source, license, and likeness/consent status of all four
-reference images remain **unverified**. The GitHub repository must remain
-Private until those rights are verified or the affected images are replaced.
+The project owner confirms the four reference images are AI-generated. The
+generator/model, generation records, applicable output terms, and
+likeness/location checks remain **unverified**. Keep the GitHub repository
+Private until those rights and consent questions are resolved or affected
+images are replaced. No public video or walkthrough links are recorded here.
 
 ## 1. Audience and story intent
 
@@ -212,13 +212,15 @@ likeness or artistic quality.
 
 ## 7. Ethics, rights, and disclosure
 
-The four image references are `eden.jpeg`, `girma.png`, `living_room.jpg`,
-and `story_telling_area.jpg`. Their origins, licenses, and likeness/consent
-status are **not verified in the project records**. This report does not
-assert that they are AI-generated, self-created, stock, licensed, or used with
-consent. The repository must stay Private until every asset's rights and
-consent are verified or that asset is replaced. Do not publicly distribute
-recognizable likenesses without permission.
+The project owner confirms that the four image references—`eden.jpeg`,
+`girma.png`, `living_room.jpg`, and `story_telling_area.jpg`—are AI-generated.
+The generating tool/model, generation date and prompts, and applicable output
+terms are not recorded. It is also not documented whether the character
+images were based on real people or whether the environment images represent
+identifiable/private places. Therefore the output-rights and likeness/location
+checks remain **unverified**. Keep the repository Private until applicable
+terms and consent questions are resolved or affected images are replaced.
+AI-generated origin alone does not establish permission to publish.
 
 The completed end card provides an in-film disclosure. If the film is
 uploaded to YouTube, the uploader must also apply the platform's AI/altered
@@ -227,9 +229,10 @@ The upload should retain accessible English subtitles.
 
 ## 8. Next steps
 
-1. Verify and record the origin, terms, attribution, and any likeness consent
-   for all four references, or replace unverified images and regenerate
-   affected shots. Keep GitHub Private until complete.
+1. Record each reference's generating tool/model, version, date, and available
+   prompt/batch record; verify its output terms and check for real-person
+   likenesses or identifiable/private places. Keep GitHub Private until those
+   rights and consent questions are resolved or affected images are replaced.
 2. Compare the quoted Test 2 comments with original notes/recordings, verify
    participant counts and session details, and retain consent/evidence without
    exposing participant identities unnecessarily.

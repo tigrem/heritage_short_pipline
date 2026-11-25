@@ -138,9 +138,11 @@ or remains unfinished. Do not claim that free-tier use proves a zero bill.
 
 ## Next steps
 
-1. Verify and document origin, licenses, and likeness/consent for all four
-   references. Keep the GitHub repository Private until each is verified or
-   replaced.
+1. The project owner confirms all four references are AI-generated. Record
+   each tool/model/version, generation date, available prompt/batch record,
+   output terms, and likeness/location check. Keep the GitHub repository
+   Private until rights and any consent questions are resolved or an affected
+   image is replaced.
 2. Rewatch both final exports and verify captions, audio, framing, and the
    end card after upload. Apply YouTube's current AI/altered-content disclosure
    and confirm English subtitles are attached/selectable.

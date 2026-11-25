@@ -2,16 +2,30 @@
 
 ## Reference asset provenance and likeness
 
-The four repository-local reference images (`eden.jpeg`, `girma.png`, `living_room.jpg`, and `story_telling_area.jpg`) are **AI-generated** assets. Confirm the generator's terms and ensure no recognizable real person's likeness or third-party rights are infringed before public release; never imply that a real person spoke the fictional dialogue.
+The project owner confirms that all four repository-local reference images are
+AI-generated. This confirms their general origin, but the project does not
+record the generating tool/model, generation date, prompt, or batch record.
+AI-generated origin alone does not establish output rights or prove that an
+image contains no real-person likeness or identifiable/private location.
 
-| File | Asset type | Source / origin | Terms & likeness check |
-| --- | --- | --- | --- |
-| `assets/refs/eden.jpeg` | Character (Eden) | **AI-generated** — record tool/batch note | Check generator terms; verify no unconsented real likeness |
-| `assets/refs/girma.png` | Character (Ato Girma) | **AI-generated** — record tool/batch note | Check generator terms; verify no unconsented real likeness |
-| `assets/refs/living_room.jpg` | Environment | **AI-generated** — record tool/batch note | Check generator terms; verify no real people/private spaces |
-| `assets/refs/story_telling_area.jpg` | Environment | **AI-generated** — record tool/batch note | Check generator terms; verify no real people/private spaces |
+| File | Asset type | Source / origin | License / terms | Likeness / consent |
+| --- | --- | --- | --- | --- |
+| `assets/refs/eden.jpeg` | Adult character reference (Eden) | AI-generated, confirmed by project owner; generator and prompt not recorded. | **UNVERIFIED** — applicable generator/model output terms not recorded. | **UNVERIFIED** — whether based on a real person's likeness and any consent are not recorded. |
+| `assets/refs/girma.png` | Adult character reference (Ato Girma) | AI-generated, confirmed by project owner; generator and prompt not recorded. | **UNVERIFIED** — applicable generator/model output terms not recorded. | **UNVERIFIED** — whether based on a real person's likeness and any consent are not recorded. |
+| `assets/refs/living_room.jpg` | Domestic environment | AI-generated, confirmed by project owner; generator and prompt not recorded. | **UNVERIFIED** — applicable generator/model output terms not recorded. | **UNVERIFIED** — whether based on a private/identifiable place or depicts people is not recorded. |
+| `assets/refs/story_telling_area.jpg` | Domestic environment | AI-generated, confirmed by project owner; generator and prompt not recorded. | **UNVERIFIED** — applicable generator/model output terms not recorded. | **UNVERIFIED** — whether based on a private/identifiable place or depicts people is not recorded. |
 
-Record each asset's generator/model, session or batch note, usage terms, and likeness check before publishing. If any asset has restrictive terms or an unconsented likeness, replace it and regenerate affected shots.
+Before public release, record for each image: generating tool/model and
+version, generation date and available prompt/batch record, applicable output
+terms and attribution obligations, and the result of a likeness/location
+review. If an image was based on a real person's likeness, verify that
+permission covers AI-reference use and publication. If terms or consent cannot
+be verified, replace the image and regenerate affected shots.
+
+**All four assets still have unverified output terms and likeness/location
+checks. Keep the GitHub repository Private until those rights and consent
+questions are verified or an affected image is replaced.** Never imply that a
+real person spoke the fictional dialogue.
 
 ## Models, services, and software terms
 
