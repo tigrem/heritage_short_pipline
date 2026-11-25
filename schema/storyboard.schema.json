@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/heritage-short-storyboard.schema.json",
+  "title": "Heritage Short Storyboard",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "title",
+    "title_am",
+    "language",
+    "subtitle_language",
+    "total_duration_sec",
+    "shots"
+  ],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title_am": {
+      "type": "string",
+      "minLength": 1
+    },
+    "language": {
+      "const": "Amharic"
+    },
+    "subtitle_language": {
+      "const": "English"
+    },
+    "total_duration_sec": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "shots": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "$ref": "#/$defs/shot"
+      }
+    }
+  },
+  "$defs": {
+    "reference": {
+      "type": "string",
+      "enum": [
+        "eden.jpeg",
+        "girma.png",
+        "living_room.jpg",
+        "story_telling_area.jpg"
+      ]
+    },
+    "shot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "shot_id",
+        "shot_type",
+        "duration_sec",
+        "visual_description",
+        "keyframe_prompt",
+        "motion_prompt",
+        "music_cue",
+        "seed",
+        "narration_am",
+        "subtitle_en",
+        "refs",
+        "location_anchor"
+      ],
+      "properties": {
+        "shot_id": {
+          "type": "string",
+          "pattern": "^shot_[0-9]{2}$"
+        },
+        "shot_type": {
+          "enum": [
+            "scene",
+            "ai_disclosure_end_card"
+          ]
+        },
+        "duration_sec": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "visual_description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "keyframe_prompt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "motion_prompt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "music_cue": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seed": {
+          "type": "integer"
+        },
+        "narration_am": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subtitle_en": {
+          "type": "string",
+          "minLength": 1
+        },
+        "refs": {
+          "type": "array",
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        },
+        "location_anchor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

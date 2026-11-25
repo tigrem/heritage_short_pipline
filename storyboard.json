@@ -1,0 +1,183 @@
+
+ {
+  "title": "Ato Girma's Promise",
+  "title_am": "የአያቴ ግርማ ቃል ኪዳን",
+  "language": "Amharic",
+  "subtitle_language": "English",
+  "total_duration_sec": 85.36,
+  "shots": [
+    {
+      "shot_id": "shot_01",
+      "shot_type": "scene",
+      "duration_sec": 7.98,
+      "visual_description": "Eden, a 30-year-old woman, sits in the family storytelling area with her travel bag nearby. Ato Girma holds a worn, folded letter. He looks at her as if he has been waiting for this moment. Eden notices the letter but does not know what it means. The emotional emphasis is on natural facial reactions, silence between lines, and the evolving trust between the two; no additional characters or locations.",
+      "keyframe_prompt": "Cinematic wide establishing shot in an authentic Ethiopian family storytelling area at late afternoon, 30-year-old Ethiopian woman Eden seated with a travel bag nearby, elderly Ethiopian grandfather Ato Girma holding a worn folded letter, both in the same frame, warm natural window light, realistic domestic textures, quiet tension, cinematic realism, film grain, 16:9 composition with subjects centered for vertical crop.",
+      "motion_prompt": "Slow cinematic push-in toward the two characters, Eden briefly glances at the folded letter, Girma holds it still, restrained natural movement.",
+      "music_cue": "Original soft instrumental opening, delicate acoustic strings and low warm ambient pad, reflective with a subtle unresolved note.",
+      "seed": 201,
+      "narration_am": "ኤደን ሻንጣዋን አስቀመጠች። ግርማ ያረጀ ደብዳቤ ይዞ ዝም አለ፤ እሷም ደብዳቤውን ተመለከተች።",
+      "subtitle_en": "Eden sets down her bag. Girma holds an old letter, and she notices it.",
+      "refs": [
+        "eden.jpeg",
+        "girma.png",
+        "story_telling_area.jpg"
+      ],
+      "location_anchor": "story_telling_area.jpg"
+    },
+    {
+      "shot_id": "shot_02",
+      "shot_type": "scene",
+      "duration_sec": 8.81,
+      "visual_description": "In a tighter two-shot, Girma asks Eden to stay a little longer. Eden looks toward her bag and responds with a hint of frustration. She believes he is about to ask her to change her plans. The emotional emphasis is on natural facial reactions, silence between lines, and the evolving trust between the two; no additional characters or locations.",
+      "keyframe_prompt": "Cinematic medium two-shot of Ato Girma and Eden in an Ethiopian family storytelling area, Eden a 30-year-old woman with mature adult features and braided black hair, travel bag visible in the background, grandfather holding a folded letter, warm soft light, realistic emotional expressions, restrained cinematic photography.",
+      "motion_prompt": "Gentle camera drift toward the two, Girma raises his eyes toward Eden, Eden turns slightly toward him, natural restrained gestures.",
+      "music_cue": "Sparse soft piano notes with a gentle ambient undertone, tension held quietly.",
+      "seed": 202,
+      "narration_am": "ግርማ፦ “ከመሄድሽ በፊት ጥቂት ቆዪ።” ኤደን፦ “አያቴ፣ ጊዜዬ አልፏል፤ መሄዴን ወስኛለሁ።”",
+      "subtitle_en": "Girma: “Stay a little before you go.”\nEden: “Grandfather, time is short; I have decided to leave.”",
+      "refs": [
+        "eden.jpeg",
+        "girma.png",
+        "story_telling_area.jpg"
+      ],
+      "location_anchor": "story_telling_area.jpg"
+    },
+    {
+      "shot_id": "shot_03",
+      "shot_type": "scene",
+      "duration_sec": 6.97,
+      "visual_description": "Close-up of Eden. She speaks honestly, explaining that she has worked hard for her opportunity and is afraid that staying behind will cost her the future she has been building. Her expression shows love, but also determination. The emotional emphasis is on natural facial reactions, silence between lines, and the evolving trust between the two; no additional characters or locations.",
+      "keyframe_prompt": "Cinematic close-up of Eden, 30-year-old Ethiopian woman with medium-brown skin, long dark curly hair matching eden.jpeg, wearing her teal dress, complete head and face clearly visible with natural headroom, speaking honestly with a determined and slightly emotional expression, warm interior light, realistic skin texture, shallow depth of field.",
+      "motion_prompt": "Subtle camera push-in, Eden speaks, briefly looks down and then returns her gaze to Girma.",
+      "music_cue": "Soft sustained piano and quiet low strings, understated and intimate.",
+      "seed": 203,
+      "narration_am": "ኤደን፦ “ለዚህ እድል ደክሜአለሁ፣ ወድቄም እንደገና ተነስቻለሁ። ሕልሜን መከተል ራስ ወዳድነት ነው?”",
+      "subtitle_en": "Eden: “I worked hard for this chance and got back up when I fell. Is pursuing my dream selfish?”",
+      "refs": [
+        "eden.jpeg",
+        "story_telling_area.jpg"
+      ],
+      "location_anchor": "story_telling_area.jpg"
+    },
+    {
+      "shot_id": "shot_04",
+      "shot_type": "scene",
+      "duration_sec": 10.1,
+      "visual_description": "Girma looks at the letter, then slowly unfolds it. He tells Eden he is not asking her to give up her future. He pauses before explaining why he kept the letter for so long. The emotional emphasis is on natural facial reactions, silence between lines, and the evolving trust between the two; no additional characters or locations.",
+      "keyframe_prompt": "Cinematic close-up of Ato Girma, elderly Ethiopian grandfather, kind deeply lined face, holding and slowly unfolding an old letter, quiet thoughtful expression, warm natural side light, authentic living room details, realistic film photography.",
+      "motion_prompt": "Slow push-in toward the letter and Girma's face, gentle movement as he unfolds the letter, subtle breathing, no fast movement.",
+      "music_cue": "Quiet cello and soft ambient strings, a gentle unresolved emotional motif.",
+      "seed": 204,
+      "narration_am": "ግርማ፦ “ሕልምሽን መከተል ስህተት አይደለም፤ እንድትተው አልጠይቅሽም። ደብዳቤው የረሳሁትን ቃል ያስታውሰኛል።”",
+      "subtitle_en": "Girma: “Following your dream isn't wrong. I'm not asking you to give it up. This letter reminds me of the promise I forgot.”",
+      "refs": [
+        "girma.png",
+        "living_room.jpg"
+      ],
+      "location_anchor": "living_room.jpg"
+    },
+    {
+      "shot_id": "shot_05",
+      "shot_type": "scene",
+      "duration_sec": 9.52,
+      "visual_description": "The letter remains in Girma's hands. Eden asks who the promise was made to. Girma looks up, and his expression changes from regret to honesty. This is the first time he speaks openly about his own failure. The emotional emphasis is on natural facial reactions, silence between lines, and the evolving trust between the two; no additional characters or locations.",
+      "keyframe_prompt": "Intimate medium close-up of Ato Girma, elderly Ethiopian man with short white curly hair and a full white beard matching girma.png, wearing his white traditional garment with colorful green-red woven trim, complete head and face clearly visible with natural headroom. He has no long dark hair, braids, or dreadlocks. He holds an old folded letter in both hands and lifts his eyes toward Eden, showing subtle regret and vulnerability, warm living-room details, soft cinematic lighting, realistic film texture. Do not change or exchange the characters' defining appearance.",
+      "motion_prompt": "Very slow push-in, Girma lifts his eyes from the letter and speaks with a slight pause before the final words.",
+      "music_cue": "Soft low cello sustained under delicate piano, emotional tension increasing gently.",
+      "seed": 205,
+      "narration_am": "ኤደን፦ “ምን ቃል?” ግርማ፦ “ለምወዳቸው ጊዜ እሰጣለሁ ብዬ ቃል ገባሁ፤ ግን አልፈጸምኩም።”",
+      "subtitle_en": "Eden: “What promise?” Girma: “I promised to give my loved ones my time, but I didn't keep that promise.”",
+      "refs": [
+        "eden.jpeg",
+        "girma.png",
+        "living_room.jpg"
+      ],
+      "location_anchor": "living_room.jpg"
+    },
+    {
+      "shot_id": "shot_06",
+   "shot_type": "scene",
+      "duration_sec": 8.12,
+      "visual_description": "Girma explains that he once chased success so relentlessly that he neglected the people who needed his presence. He had promised that the lessons of love and kindness would never be lost, yet he spent years believing that providing alone was enough. He speaks with regret, not self-pity. The emotional emphasis is on natural facial reactions, silence between lines, and the evolving trust between the two; no additional characters or locations.",
+      "keyframe_prompt": "Cinematic medium shot of Ato Girma speaking with sincerity in an authentic Ethiopian living room, elderly grandfather holding a worn letter, reflective and regretful but composed, warm natural light, cinematic realism, subtle film grain.",
+      "motion_prompt": "Slow subtle camera drift, Girma speaks with small natural gestures, pauses briefly, eyes remain focused toward Eden.",
+      "music_cue": "Gentle warm strings begin to rise with soft piano, restrained emotional weight.",
+      "seed": 206,
+      "narration_am": "ግርማ፦ “ሥራንና ገንዘብን ብቻ ሳሳድድ፣ ለቤተሠቤ ጊዜ አልሠጠሁም። ከዘገየ በሀኃላ ግን።”",
+      "subtitle_en": "Girma: “I chased work and money while my family only wanted my time. I realized too late.”",
+      "refs": [
+        "girma.png",
+        "living_room.jpg"
+      ],
+      "location_anchor": "living_room.jpg"
+    },
+    {
+      "shot_id": "shot_07",
+      "shot_type": "scene",
+      "duration_sec": 9.7,
+      "visual_description": "Eden listens quietly. She asks whether the promise is simply to stay close to family. Girma shakes his head and explains that the promise is to carry kindness and honesty wherever life takes her. Eden begins to understand that he is not trying to stop her. The emotional emphasis is on natural facial reactions, silence between lines, and the evolving trust between the two; no additional characters or locations.",
+      "keyframe_prompt": "Cinematic two-shot of Eden and Ato Girma seated together in a warm Ethiopian living room, 30-year-old woman listening with a softened expression, grandfather gently shaking his head and speaking, emotional connection, soft golden natural light, realistic cinematic photography.",
+      "motion_prompt": "Slow steady camera movement toward the two, Eden listens and subtly nods, Girma speaks gently, no abrupt movement.",
+      "music_cue": "Warm piano and acoustic strings, hopeful harmony beginning to resolve.",
+      "seed": 207,
+      "narration_am": "ኤደን፦ “እንዳልሄድ ትፈልጋለህ?” ግርማ፦ “ሂጂ፤ ሰውን እርጂ፣ ወዳጆችሽን አትርሺ፤ ነገ ብለሽ አትዘግዪ።”",
+      "subtitle_en": "Eden: “Do you want me to stay?” Girma: “Go. Help others, remember those you love, and don't put it off until tomorrow.”",
+      "refs": [
+        "eden.jpeg",
+        "girma.png",
+        "living_room.jpg"
+      ],
+      "location_anchor": "living_room.jpg"
+    },
+    {
+      "shot_id": "shot_08",
+      "shot_type": "scene",
+      "duration_sec": 9.0,
+      "visual_description": "Eden reaches for Girma's hand. In a medium close two-shot, both faces remain visible as she tells him she understands now, but she will still go. Girma smiles and tells her that is exactly what he hopes she will do. Their joined hands stay visible in the foreground for a quiet moment. The emotional emphasis is on natural facial reactions, silence between lines, and the evolving trust between the two; no additional characters or locations.",
+      "keyframe_prompt": "Cinematic medium close two-shot of Eden and her elderly grandfather Ato Girma seated together in the family storytelling area, both complete heads and faces clearly visible with natural headroom, their joined hands visible in the foreground, Eden's teal dress and long dark curly hair, Girma's white hair and beard with Ethiopian white garment and colorful patterned trim, warm golden window light, shallow depth of field, realistic cinematic photography, subjects centered safely for both landscape and portrait framing.",
+      "motion_prompt": "Slow subtle push-in toward their faces and joined hands, keep both full heads and faces inside frame with headroom throughout, Eden gently reaches and holds Girma's hand, natural restrained movement.",
+      "music_cue": "Original music reaches its emotional peak, gentle acoustic strings and piano, warm and hopeful.",
+      "seed": 208,
+      "narration_am": "ኤደን፦ “ሕልሜን እከተላለሁ። አንተም ከዛሬ ጀምሮ ራስህን ይቅር በል።” ግርማ፦ “እሺ ልጄ።”",
+      "subtitle_en": "Eden: “I'll follow my dream. Please forgive yourself, too, starting today.” Girma: “I'm learning.”",
+      "refs": [
+        "eden.jpeg",
+        "girma.png",
+        "living_room.jpg"
+      ],
+      "location_anchor": "living_room.jpg"
+    },
+    {
+      "shot_id": "shot_09",
+      "shot_type": "scene",
+      "duration_sec": 9.64,
+      "visual_description": "In the family storytelling area, Eden and Girma sit side by side. Eden places the folded letter carefully on the table, not as a relic of the past, but as a promise she now understands. They share a quiet look. The film ends on the image of their joined hands. The emotional emphasis is on natural facial reactions, silence between lines, and the evolving trust between the two; no additional characters or locations.",
+      "keyframe_prompt": "Cinematic closing medium-wide two-shot in the traditional Ethiopian storytelling area shown in story_telling_area.jpg, with its carved wooden chair, bright windows, and woven textiles. Eden is the young woman with medium-brown skin, long dark curly hair, and teal dress matching eden.jpeg; Ato Girma is the elderly man with white curly hair and beard, wearing a white traditional garment with colorful green-red trim matching girma.png. Keep both complete heads and faces clearly visible with natural headroom; do not exchange their clothes or defining appearance. They sit side by side, the old folded letter is placed carefully on one small table, and their hands gently touch. Warm evening light, intimate authentic family atmosphere, realistic film photography, subjects centered safely for both landscape and portrait framing; no extra props.",
+      "motion_prompt": "Very slow gentle pull-back, both characters share a quiet look, hold the final composition and fade gently to black.",
+      "music_cue": "Warm original acoustic and piano theme resolves into a gentle sustained final chord and soft fade.",
+      "seed": 209,
+      "narration_am": "ኤደን ደብዳቤውን አስቀመጠች፤ የግርማን እጅ ይዛ “እሄዳለሁ፣ ሕልሜንም እከተላለሁ፤ ግን ሰዎችን አልረሳም።”",
+      "subtitle_en": "Eden sets down the letter and takes Girma's hand. “I'll go and follow my dream, but I won't forget the people I love.”",
+      "refs": [
+        "eden.jpeg",
+        "girma.png",
+        "story_telling_area.jpg"
+      ],
+      "location_anchor": "story_telling_area.jpg"
+    },
+    {
+      "shot_id": "shot_10",
+      "shot_type": "ai_disclosure_end_card",
+      "duration_sec": 5.52,
+      "visual_description": "A clean dark charcoal end card with subtle warm gold typography. The film title appears, followed by a visible AI disclosure. The typography is added programmatically, not generated in the image.",
+      "keyframe_prompt": "Minimal dark charcoal cinematic end card with subtle warm gold accents, clean centered typography reading 'Ato Girma's Promise' and 'AI-assisted film', uncluttered design, no characters, no background imagery.",
+      "motion_prompt": "Static end card, title and AI disclosure remain legible, fade to black at the end.",
+      "music_cue": "Original score fades to silence.",
+      "seed": 210,
+      "narration_am": "ይህ ፊልም በአርቲፊሻል ኢንተለጀንስ እርዳታ የተዘጋጀ የፈጠራ ሥራ ነው።",
+      "subtitle_en": "This fictional film was created with the assistance of artificial intelligence.",
+      "refs": [],
+      "location_anchor": null
+    }
+  ]
+}

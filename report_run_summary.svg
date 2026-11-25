@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="360" viewBox="0 0 920 360" role="img" aria-labelledby="title desc">
+  <title id="title">Pipeline run-log statuses</title>
+  <desc id="desc">Horizontal bars showing 136 successful events, 65 cache hits, 29 retries, and 10 failures, 240 records total.</desc>
+  <rect width="920" height="360" fill="#ffffff"/>
+  <text x="460" y="36" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#182230">Run-log event statuses (240 records)</text>
+  <text x="460" y="58" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#667085">Counts are log events, not unique jobs or billing units.</text>
+  <g font-family="Arial, sans-serif" font-size="14" fill="#344054">
+    <text x="190" y="116" text-anchor="end">Success</text><text x="190" y="176" text-anchor="end">Cache hit</text>
+    <text x="190" y="236" text-anchor="end">Retrying</text><text x="190" y="296" text-anchor="end">Failure</text>
+  </g>
+  <g>
+    <rect x="215" y="91" width="544" height="34" rx="4" fill="#25855a"/>
+    <rect x="215" y="151" width="260" height="34" rx="4" fill="#2878b5"/>
+    <rect x="215" y="211" width="116" height="34" rx="4" fill="#d08a27"/>
+    <rect x="215" y="271" width="40" height="34" rx="4" fill="#c54848"/>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#182230">
+    <text x="770" y="114">136</text><text x="486" y="174">65</text><text x="342" y="234">29</text><text x="266" y="294">10</text>
+  </g>
+  <text x="485" y="337" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#667085">GPU minutes were not recorded; $0 is an unverified free-tier estimate.</text>
+</svg>
