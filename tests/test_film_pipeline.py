@@ -46,6 +46,7 @@ class ProductionStageTests(unittest.TestCase):
             with (
                 patch.object(keyframes, "load_cached_output", side_effect=load_cache),
                 patch.object(keyframes, "save_cached_output", side_effect=save_cache),
+                patch.dict(keyframes.os.environ, {"KEYFRAME_MODE": "ai"}),
                 patch.object(keyframes, "_credentials", return_value=("account", "token")),
                 patch.object(
                     keyframes,
@@ -71,6 +72,108 @@ class ProductionStageTests(unittest.TestCase):
             self.assertIn("clearly visible head and face", prompt)
             self.assertIn("Visual variation seed: 17", prompt)
 
+    def test_reference_locked_keyframe_uses_supplied_images_without_model_calls(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            storyboard = json.loads(STORYBOARD_PATH.read_text(encoding="utf-8"))
+            shot = storyboard["shots"][7]
+            load_cache, save_cache = self._cache_functions(root / "cache")
+            with (
+                patch.object(keyframes, "load_cached_output", side_effect=load_cache),
+                patch.object(keyframes, "save_cached_output", side_effect=save_cache),
+                patch.dict(keyframes.os.environ, {"KEYFRAME_MODE": "reference_locked"}),
+                patch.object(keyframes, "_credentials") as credentials,
+                patch.object(keyframes, "_reference_description") as describe,
+                patch.object(keyframes, "_logged_request") as request,
+                patch.object(keyframes, "log_call") as logger,
+                patch.object(keyframes, "log_cache_hit") as cache_logger,
+            ):
+                output = keyframes.generate_keyframe(
+                    shot, storyboard["title"], root / "keyframes"
+                )
+                first_bytes = output.read_bytes()
+                with Image.open(output) as image:
+                    self.assertEqual(image.size, (1024, 1024))
+
+                keyframes.generate_keyframe(
+                    shot, storyboard["title"], root / "keyframes"
+                )
+
+            self.assertEqual(output.read_bytes(), first_bytes)
+            credentials.assert_not_called()
+            describe.assert_not_called()
+            request.assert_not_called()
+            logger.assert_called_once()
+            self.assertEqual(
+                logger.call_args.args[2],
+                keyframes.LOCKED_COMPOSITION_MODEL,
+            )
+            cache_logger.assert_called_once()
+
+    def test_reference_conditioned_keyframe_conditions_on_only_shot_references(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            storyboard = json.loads(STORYBOARD_PATH.read_text(encoding="utf-8"))
+            shot = storyboard["shots"][7]
+            image_buffer = io.BytesIO()
+            image = Image.new("RGB", (640, 640), (120, 80, 40))
+            ImageDraw.Draw(image).rectangle((0, 0, 319, 639), fill=(20, 180, 90))
+            image.save(image_buffer, format="PNG")
+            encoded = base64.b64encode(image_buffer.getvalue()).decode("ascii")
+            load_cache, save_cache = self._cache_functions(root / "cache")
+            with (
+                patch.object(keyframes, "load_cached_output", side_effect=load_cache),
+                patch.object(keyframes, "save_cached_output", side_effect=save_cache),
+                patch.dict(
+                    keyframes.os.environ,
+                    {"KEYFRAME_MODE": "reference_conditioned"},
+                ),
+                patch.object(keyframes, "_credentials", return_value=("account", "token")),
+                patch.object(keyframes, "_reference_description") as describe,
+                patch.object(
+                    keyframes,
+                    "_logged_request",
+                    return_value={"image": encoded},
+                ) as request,
+                patch.object(keyframes, "log_call"),
+            ):
+                keyframes.generate_keyframe(
+                    shot, storyboard["title"], root / "keyframes"
+                )
+
+            request.assert_called_once()
+            describe.assert_not_called()
+            self.assertEqual(
+                request.call_args.kwargs["model"],
+                keyframes.CONDITIONING_MODEL,
+            )
+            payload = request.call_args.kwargs["payload"]
+            self.assertEqual(payload["guidance"], 4.0)
+            self.assertIn("Canonical reference preservation", payload["prompt"])
+            self.assertNotIn("image_b64", payload)
+            self.assertEqual(
+                [key for key in payload if key.startswith("input_image_")],
+                ["input_image_0", "input_image_1", "input_image_2"],
+            )
+            for key in ("input_image_0", "input_image_1", "input_image_2"):
+                with Image.open(io.BytesIO(payload[key])) as reference:
+                    self.assertLess(max(reference.size), 512)
+
+    def test_flux_reference_request_is_encoded_as_multipart_form_data(self):
+        body, content_type = keyframes._multipart_form_data(
+            {"prompt": "A natural two-shot.", "input_image_0": b"png bytes"}
+        )
+
+        self.assertTrue(content_type.startswith("multipart/form-data; boundary="))
+        boundary = content_type.split("boundary=", 1)[1]
+        self.assertIn(f'name="prompt"\r\n\r\nA natural two-shot.'.encode(), body)
+        self.assertIn(
+            f'name="input_image_0"; filename="input_image_0.png"'.encode(),
+            body,
+        )
+        self.assertIn(b"Content-Type: image/png\r\n\r\npng bytes", body)
+        self.assertTrue(body.endswith(f"--{boundary}--\r\n".encode()))
+
     def test_keyframe_retries_blank_image_and_rejects_bad_dimensions(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -95,6 +198,7 @@ class ProductionStageTests(unittest.TestCase):
             with (
                 patch.object(keyframes, "load_cached_output", side_effect=load_cache),
                 patch.object(keyframes, "save_cached_output", side_effect=save_cache),
+                patch.dict(keyframes.os.environ, {"KEYFRAME_MODE": "ai"}),
                 patch.object(keyframes, "_credentials", return_value=("account", "token")),
                 patch.object(keyframes, "_reference_description", return_value="Eden."),
                 patch.object(
@@ -146,8 +250,8 @@ class ProductionStageTests(unittest.TestCase):
         prompt = keyframes._build_prompt(shot, refs, descriptions)
 
         self.assertLessEqual(len(prompt), 2048)
-        for path in refs:
-            self.assertIn(f"Visual anchor from {path.name}", prompt)
+        for index, path in enumerate(refs):
+            self.assertIn(f"Reference image {index} is {path.name}", prompt)
 
     def test_shot_two_subtitles_keep_speaker_spacing_and_line_break(self):
         storyboard = json.loads(STORYBOARD_PATH.read_text(encoding="utf-8"))

@@ -49,18 +49,21 @@ The production stages are:
 
 1. Validate storyboard structure, references, shot order, and duration.
 2. Generate or reuse Amharic narration and produce an English SRT.
-3. Generate/reuse reference-aware keyframes and render subtle motion clips
+3. Compose/reuse reference-locked keyframes and render subtle motion clips
    for both aspect ratios.
 4. Create an instrumental score and assemble the final exports.
 
 The pipeline uses content-addressed SHA-256 caching, retry/backoff for
-transient errors, and append-only JSONL logging. The default visual generator
-is Cloudflare Workers AI Flux Schnell. Since this endpoint is text-to-image,
-the listed reference images are described using the configured reference
-captioning model and filename-specific visual anchors are added to the
-prompt. Keyframe checks reject corrupted or near-blank images. Motion renders
-preserve the full keyframe over a blurred background instead of aggressively
-cropping people for portrait output.
+transient errors, and append-only JSONL logging. After visual review found
+character and room drift in AI-generated frames, the default keyframe mode was
+changed to deterministic composition from the exact supplied character and
+location images. Complete character photos are scaled proportionally and shown
+as framed panels over the selected room photo; no AI redraw changes their
+features, clothing, hair, or poses. This means story actions such as holding
+hands are not depicted literally. Cloudflare image generation remains an
+explicit `KEYFRAME_MODE=ai` option and may introduce visual variation. Motion
+renders preserve the complete composition over a blurred background rather
+than aggressively cropping it for portrait output.
 
 The two final exports are `outputs/final_16x9.mp4` and
 `outputs/final_9x16.mp4`; `outputs/subtitles.srt` is retained separately.
@@ -192,21 +195,26 @@ The production achieved two 85.36-second aspect-ratio exports with narration,
 English subtitles, instrumental underscore, and an AI disclosure end card.
 It also established selective shot regeneration, retries, caching, and
 run-summary reporting. The shot durations were measured against the narration
-WAVs, not estimated from subtitle length.
+WAVs, not estimated from subtitle length. The latest visual correction
+prioritizes preserving the exact reference appearance over depicting new
+character poses.
 
-The latest run summary reports **240 log records**: **136 successes**, **65
-cache hits**, **29 retry events**, and **10 historical failures**. Those
+The latest run summary after the reference-locked rebuild reports **293 log
+records**: **175 successes**, **79 cache hits**, **29 retry events**, and **10
+historical failures**. Those
 failures include eight TTS failures associated with rate/quota limits and two
 historical keyframe/reference-stage failures. The project records that the
 affected narration was later regenerated and that the Flux seed handling was
 changed.
 
-The run log has no GPU-minute estimates or provider billing fields. The
+The logged latency totals 2,065.016 seconds (34.417 minutes), which is not
+wall-clock duration or GPU time. The run log has no GPU-minute estimates or
+provider billing fields. The
 reported **$0** cost is a free-tier estimate, not verified account billing.
 Free-tier TTS limits caused HTTP 429 responses and constrained when additional
-narration could be generated. Visual generation also required prompt
-iteration and manual review; the automated image checks do not prove semantic
-likeness or artistic quality.
+narration could be generated. Earlier AI-generated keyframes also required
+visual review; the current default avoids redraw drift by using the supplied
+reference images directly, at the cost of fixed poses.
 
 ![Bar chart of the logged pipeline event statuses.](report_run_summary.svg)
 

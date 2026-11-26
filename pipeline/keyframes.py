@@ -10,6 +10,7 @@ import os
 import sys
 import tempfile
 import time
+import uuid
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -17,7 +18,7 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from dotenv import dotenv_values
-from PIL import Image, ImageDraw, ImageFont, ImageStat
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps, ImageStat
 
 from pipeline.cache import load_cached_output, save_cached_output
 from pipeline.logger import log_cache_hit, log_call
@@ -46,6 +47,16 @@ VISUAL_PROMPT_GUARD = (
     "or blank faces, extra people, or malformed limbs. Include no instruments "
     "or props unless the shot explicitly requests them."
 )
+IDENTITY_LOCATION_GUARD = (
+    "Canonical reference preservation: the attached Eden and Ato Girma images "
+    "define their identities. Keep the same apparent age, skin tone, face shape, "
+    "hair color, hairstyle and texture, body build, clothing silhouette, colors, "
+    "and woven garment patterns. Change pose and facial expression only as "
+    "required by this shot. Use the attached location image as the setting; "
+    "preserve its room layout, windows, furniture, colors, and textiles. Make "
+    "one continuous cinematic scene, not a collage, portrait panel, or card. "
+    "Do not add people, wardrobe, props, or locations that are not requested."
+)
 REFERENCE_ANCHORS = {
     "eden.jpeg": (
         "Eden character anchor: young Ethiopian woman with medium-brown skin, "
@@ -65,8 +76,11 @@ REFERENCE_ANCHORS = {
         "windows, patterned woven textiles, and warm domestic details."
     ),
 }
-CONDITIONING_MODEL = "@cf/stabilityai/stable-diffusion-xl-base-1.0"
-PROMPT_CONTRACT_VERSION = 3
+CONDITIONING_MODEL = "@cf/black-forest-labs/flux-2-klein-4b"
+LOCKED_COMPOSITION_MODEL = "pillow-reference-locked-composite"
+LOCKED_COMPOSITION_VERSION = 2
+PROMPT_CONTRACT_VERSION = 5
+KEYFRAME_MODES = frozenset(("reference_locked", "reference_conditioned", "ai"))
 ALLOWED_REFS = frozenset(
     ("eden.jpeg", "girma.png", "living_room.jpg", "story_telling_area.jpg")
 )
@@ -96,6 +110,16 @@ def _setting(name: str, default: str | None = None) -> str | None:
     return default
 
 
+def _keyframe_mode() -> str:
+    mode = (_setting("KEYFRAME_MODE", "reference_conditioned") or "").casefold()
+    if mode not in KEYFRAME_MODES:
+        raise ValueError(
+            "KEYFRAME_MODE must be 'reference_conditioned', "
+            "'reference_locked', or 'ai'."
+        )
+    return mode
+
+
 def _credentials() -> tuple[str, str]:
     account_id = _setting("CLOUDFLARE_ACCOUNT_ID")
     api_token = _setting("CLOUDFLARE_API_TOKEN")
@@ -118,12 +142,17 @@ def _request_model(
     api_token: str,
 ) -> Any:
     endpoint = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}"
+    if model == CONDITIONING_MODEL:
+        body, content_type = _multipart_form_data(payload)
+    else:
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        content_type = "application/json"
     request = urllib.request.Request(
         endpoint,
-        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        data=body,
         headers={
             "Authorization": f"Bearer {api_token}",
-            "Content-Type": "application/json",
+            "Content-Type": content_type,
         },
         method="POST",
     )
@@ -285,6 +314,34 @@ def _reference_description(
     return description
 
 
+def _multipart_form_data(payload: dict[str, Any]) -> tuple[bytes, str]:
+    boundary = f"----heritage-short-{uuid.uuid4().hex}"
+    parts: list[bytes] = []
+    for name, value in payload.items():
+        if isinstance(value, bytes):
+            disposition = (
+                f'Content-Disposition: form-data; name="{name}"; '
+                f'filename="{name}.png"\r\n'
+            )
+            parts.extend(
+                (
+                    f"--{boundary}\r\n{disposition}"
+                    "Content-Type: image/png\r\n\r\n".encode("ascii"),
+                    value,
+                    b"\r\n",
+                )
+            )
+        else:
+            parts.extend(
+                (
+                    f'--{boundary}\r\nContent-Disposition: form-data; '
+                    f'name="{name}"\r\n\r\n{value}\r\n'.encode("utf-8"),
+                )
+            )
+    parts.append(f"--{boundary}--\r\n".encode("ascii"))
+    return b"".join(parts), f"multipart/form-data; boundary={boundary}"
+
+
 def _image_bytes(result: Any) -> bytes:
     if not isinstance(result, dict):
         raise ValueError("Cloudflare image response was not a JSON object.")
@@ -327,9 +384,14 @@ def _validate_generated_image(image_data: bytes, shot_id: str) -> None:
         ) from error
 
 
-def _reference_contact_sheet(ref_paths: list[Path]) -> bytes:
+def _reference_contact_sheet(
+    ref_paths: list[Path],
+    shot: dict[str, Any] | None = None,
+) -> bytes:
     if not ref_paths:
         raise ValueError("Image-conditioned generation requires at least one ref.")
+    if shot is not None:
+        return _make_reference_locked_composite(shot, ref_paths)
     canvas = Image.new("RGB", (1024, 1024), (32, 32, 32))
     columns = 2 if len(ref_paths) > 1 else 1
     rows = (len(ref_paths) + columns - 1) // columns
@@ -347,6 +409,15 @@ def _reference_contact_sheet(ref_paths: list[Path]) -> bytes:
     return output.getvalue()
 
 
+def _reference_image_bytes(path: Path) -> bytes:
+    with Image.open(path) as source:
+        image = source.convert("RGB")
+        image.thumbnail((511, 511), Image.Resampling.LANCZOS)
+        output = io.BytesIO()
+        image.save(output, format="PNG")
+    return output.getvalue()
+
+
 def _build_prompt(
     shot: dict[str, Any],
     ref_paths: list[Path],
@@ -354,26 +425,40 @@ def _build_prompt(
 ) -> str:
     for description_limit in (MAX_REFERENCE_DESCRIPTION_CHARS, 120, 100, 80, 60, 40, 20, 0):
         visual_anchors = "\n".join(
-            f"Visual anchor from {path.name}: {REFERENCE_ANCHORS[path.name]} "
+            f"Reference image {index} is {path.name}. "
+            f"Visual anchor: {REFERENCE_ANCHORS[path.name]} "
             f"Observed reference details: "
             f"{descriptions.get(path.name, '')[:description_limit]}"
-            for path in ref_paths
+            for index, path in enumerate(ref_paths)
         )
-        prompt = "\n".join(
-            part
-            for part in (
-                shot["keyframe_prompt"],
-                f"Visual variation seed: {shot['seed']}.",
-                visual_anchors,
-                VISUAL_PROMPT_GUARD,
-            )
-            if part
-        )
+        prompt_parts = [
+            shot["keyframe_prompt"],
+            f"Visual variation seed: {shot['seed']}.",
+            "Use the supplied reference images as the only source for each character "
+            "and the room. Keep their identity, apparent age, skin tone, facial "
+            "features, hair, body build, clothing, and the room unchanged. Vary only "
+            "the shot-specific posture, gesture, position, and expression.",
+            IDENTITY_LOCATION_GUARD,
+            visual_anchors,
+            VISUAL_PROMPT_GUARD,
+        ]
+        prompt = "\n".join(part for part in prompt_parts if part)
         if len(prompt) <= 2048:
             return prompt
-    raise ValueError(
-        f"Reference cues and visual guard exceed 2048 characters for {shot['shot_id']}."
+    compact_static = "\n".join(
+        part
+        for part in (
+            f"Visual variation seed: {shot['seed']}.",
+            "Change only posture, gesture, position in the room, and facial expression.",
+            IDENTITY_LOCATION_GUARD,
+            visual_anchors,
+            VISUAL_PROMPT_GUARD,
+        )
+        if part
     )
+    shot_prompt_budget = max(0, 2048 - len(compact_static) - 1)
+    compact_prompt = f"{shot['keyframe_prompt'][:shot_prompt_budget]}\n{compact_static}"
+    return compact_prompt[:2048]
 
 
 def _append_quality_failure(shot_id: str, message: str) -> None:
@@ -442,6 +527,151 @@ def _make_disclosure_card(title: str) -> bytes:
     return output.getvalue()
 
 
+def _make_reference_locked_composite(
+    shot: dict[str, Any],
+    ref_paths: list[Path],
+) -> bytes:
+    """Compose the complete supplied character photos over the exact room photo."""
+    location_name = shot.get("location_anchor")
+    if location_name is None:
+        location_name = next(
+            (
+                path.name
+                for path in ref_paths
+                if path.name in ("living_room.jpg", "story_telling_area.jpg")
+            ),
+            None,
+        )
+    if location_name is None:
+        raise ValueError(f"{shot['shot_id']} has no approved location reference.")
+    location_path = _reference_path(location_name)
+    character_paths = [
+        path for path in ref_paths if path.name in ("eden.jpeg", "girma.png")
+    ]
+    if not character_paths:
+        raise ValueError(f"{shot['shot_id']} has no approved character reference.")
+
+    canvas_size = (1024, 1024)
+    with Image.open(location_path) as source:
+        canvas = ImageOps.fit(
+            source.convert("RGB"),
+            canvas_size,
+            method=Image.Resampling.LANCZOS,
+            centering=(0.5, 0.5),
+        )
+
+    def cut_out_background(path: Path) -> tuple[Image.Image, Image.Image]:
+        with Image.open(path) as source:
+            rgb = source.convert("RGB")
+        width, height = rgb.size
+        pixels = rgb.load()
+        background = pixels[0, 0]
+        visited = bytearray(width * height)
+        alpha = Image.new("L", (width, height), 255)
+        alpha_pixels = alpha.load()
+
+        from collections import deque
+
+        queue: deque[tuple[int, int]] = deque()
+        for x in range(width):
+            queue.append((x, 0))
+            queue.append((x, height - 1))
+        for y in range(height):
+            queue.append((0, y))
+            queue.append((width - 1, y))
+
+        while queue:
+            x, y = queue.popleft()
+            index = y * width + x
+            if visited[index]:
+                continue
+            visited[index] = 1
+            red, green, blue = pixels[x, y]
+            if (
+                abs(red - background[0]) > 34
+                or abs(green - background[1]) > 34
+                or abs(blue - background[2]) > 34
+            ):
+                continue
+            alpha_pixels[x, y] = 0
+            if x > 0:
+                queue.append((x - 1, y))
+            if x + 1 < width:
+                queue.append((x + 1, y))
+            if y > 0:
+                queue.append((x, y - 1))
+            if y + 1 < height:
+                queue.append((x, y + 1))
+
+        alpha = alpha.filter(ImageFilter.GaussianBlur(1.2))
+        bbox = alpha.getbbox()
+        if bbox is None:
+            raise ValueError(f"Reference has no visible subject: {path.name}")
+        rgb = rgb.crop(bbox)
+        alpha = alpha.crop(bbox)
+        return rgb, alpha
+
+    characters: dict[str, tuple[Image.Image, Image.Image]] = {}
+    for path in character_paths:
+        characters[path.name] = cut_out_background(path)
+
+    shot_id = shot["shot_id"]
+    eden = characters.get("eden.jpeg")
+    girma = characters.get("girma.png")
+
+    close_shots = {"shot_03", "shot_04", "shot_05", "shot_06"}
+    if shot_id in close_shots:
+        selected = eden if eden is not None and shot_id == "shot_03" else girma
+        if selected is not None:
+            character, alpha = selected
+            character.thumbnail((650, 920), Image.Resampling.LANCZOS)
+            alpha = alpha.resize(character.size, Image.Resampling.LANCZOS)
+            x = (canvas_size[0] - character.width) // 2
+            y = canvas_size[1] - character.height - 12
+            canvas.paste(character, (x, y), alpha)
+    elif eden is not None and girma is not None:
+        eden_image, eden_alpha = eden
+        girma_image, girma_alpha = girma
+        eden_image = eden_image.copy()
+        girma_image = girma_image.copy()
+
+        eden_height = 700 if shot_id in {"shot_07", "shot_08", "shot_09"} else 760
+        girma_height = eden_height
+        eden_image.thumbnail((520, eden_height), Image.Resampling.LANCZOS)
+        girma_image.thumbnail((520, girma_height), Image.Resampling.LANCZOS)
+        eden_alpha = eden_alpha.resize(eden_image.size, Image.Resampling.LANCZOS)
+        girma_alpha = girma_alpha.resize(girma_image.size, Image.Resampling.LANCZOS)
+
+        if shot_id in {"shot_08", "shot_09"}:
+            eden_x = 170
+            girma_x = 562
+        else:
+            eden_x = 100
+            girma_x = 570
+        eden_y = canvas_size[1] - eden_image.height - 12
+        girma_y = canvas_size[1] - girma_image.height - 12
+        canvas.paste(eden_image, (eden_x, eden_y), eden_alpha)
+        canvas.paste(girma_image, (girma_x, girma_y), girma_alpha)
+    elif eden is not None:
+        character, alpha = eden
+        character.thumbnail((650, 920), Image.Resampling.LANCZOS)
+        alpha = alpha.resize(character.size, Image.Resampling.LANCZOS)
+        x = (canvas_size[0] - character.width) // 2
+        y = canvas_size[1] - character.height - 12
+        canvas.paste(character, (x, y), alpha)
+    elif girma is not None:
+        character, alpha = girma
+        character.thumbnail((650, 920), Image.Resampling.LANCZOS)
+        alpha = alpha.resize(character.size, Image.Resampling.LANCZOS)
+        x = (canvas_size[0] - character.width) // 2
+        y = canvas_size[1] - character.height - 12
+        canvas.paste(character, (x, y), alpha)
+
+    output = io.BytesIO()
+    canvas.save(output, format="PNG")
+    return output.getvalue()
+
+
 def _cache_inputs(
     shot: dict[str, Any],
     refs: list[Path],
@@ -450,24 +680,48 @@ def _cache_inputs(
     descriptions: dict[str, str],
     title: str | None,
 ) -> dict[str, Any]:
+    is_locked_composition = model == LOCKED_COMPOSITION_MODEL
     is_conditioned_model = model == CONDITIONING_MODEL
     return {
-        "keyframe_prompt": shot["keyframe_prompt"],
-        "prompt_guard": VISUAL_PROMPT_GUARD,
+        "keyframe_prompt": None if is_locked_composition else shot["keyframe_prompt"],
+        "prompt_guard": None if is_locked_composition else VISUAL_PROMPT_GUARD,
         "prompt_contract_version": PROMPT_CONTRACT_VERSION,
-        "seed": shot["seed"],
+        "locked_composition_version": (
+            LOCKED_COMPOSITION_VERSION
+            if is_locked_composition
+            else None
+        ),
+        "seed": None if is_locked_composition else shot["seed"],
         "refs": refs,
+        "location_anchor": (
+            _reference_path(shot["location_anchor"])
+            if shot.get("location_anchor") is not None
+            else None
+        ),
         "reference_anchors": {
             path.name: REFERENCE_ANCHORS[path.name] for path in refs
         },
         "reference_descriptions": descriptions,
         "model": model,
         "conditioning_mode": (
-            "image_conditioned" if is_conditioned_model else "text_and_reference_anchors"
+            "reference_locked_composite"
+            if is_locked_composition
+            else (
+                "image_conditioned"
+                if is_conditioned_model
+                else "text_and_reference_anchors"
+            )
         ),
         "reference_model": reference_model,
         "display_title": title,
-        "steps": 20 if is_conditioned_model else 4,
+        "guidance": 4.0 if is_conditioned_model else None,
+        "strength": None,
+        "steps": 4 if is_conditioned_model else (0 if is_locked_composition else 4),
+        "reference_image_mode": (
+            "individual_originals_under_512px"
+            if is_conditioned_model
+            else None
+        ),
         "output_format": "png",
     }
 
@@ -480,8 +734,18 @@ def generate_keyframe(
     """Generate one PNG keyframe and reuse it while all its inputs are unchanged."""
     shot_id = shot["shot_id"]
     output_path = Path(output_dir) / f"{shot_id}.png"
-    image_model = _setting("CF_IMAGE_MODEL", DEFAULT_IMAGE_MODEL)
-    reference_model = _setting("CF_REFERENCE_MODEL", DEFAULT_REFERENCE_MODEL)
+    mode = _keyframe_mode()
+    if mode == "reference_locked":
+        image_model = LOCKED_COMPOSITION_MODEL
+    elif mode == "reference_conditioned":
+        image_model = CONDITIONING_MODEL
+    else:
+        image_model = _setting("CF_IMAGE_MODEL", DEFAULT_IMAGE_MODEL)
+    reference_model = (
+        _setting("CF_REFERENCE_MODEL", DEFAULT_REFERENCE_MODEL)
+        if mode == "ai"
+        else "not-used"
+    )
     if not image_model or not reference_model:
         raise RuntimeError("CF_IMAGE_MODEL and CF_REFERENCE_MODEL must not be empty.")
     refs = shot["refs"]
@@ -494,7 +758,7 @@ def generate_keyframe(
             shot,
             ref_paths,
             "programmatic-disclosure-card",
-            reference_model,
+            "not-used",
             {},
             title,
         )
@@ -548,11 +812,71 @@ def generate_keyframe(
         )
         return output_path
 
+    if mode == "reference_locked":
+        inputs = _cache_inputs(
+            shot,
+            ref_paths,
+            LOCKED_COMPOSITION_MODEL,
+            reference_model,
+            {},
+            None,
+        )
+        cached, saved = load_cached_output("keyframes", shot_id, inputs)
+        if cached and output_path.is_file():
+            try:
+                cached_data = base64.b64decode(saved["image_base64"], validate=True)
+                _validate_generated_image(cached_data, shot_id)
+                if output_path.read_bytes() == cached_data:
+                    log_cache_hit("keyframes", shot_id, shot.get("seed"))
+                    return output_path
+            except (KeyError, ValueError) as error:
+                log_call(
+                    "keyframes_quality",
+                    shot_id,
+                    LOCKED_COMPOSITION_MODEL,
+                    shot.get("seed"),
+                    0.0,
+                    "failure",
+                    error=f"Invalid cached reference composition: {error}"[:1500],
+                )
+
+        started = time.perf_counter()
+        try:
+            image_data = _make_reference_locked_composite(shot, ref_paths)
+            _validate_generated_image(image_data, shot_id)
+            image_data = _write_image(output_path, image_data)
+            save_cached_output(
+                "keyframes",
+                shot_id,
+                inputs,
+                {"image_base64": base64.b64encode(image_data).decode("ascii")},
+            )
+        except Exception as error:
+            log_call(
+                "keyframes",
+                shot_id,
+                LOCKED_COMPOSITION_MODEL,
+                shot.get("seed"),
+                time.perf_counter() - started,
+                "failure",
+                error=f"{type(error).__name__}: {error}"[:1500],
+            )
+            raise
+        log_call(
+            "keyframes",
+            shot_id,
+            LOCKED_COMPOSITION_MODEL,
+            shot.get("seed"),
+            time.perf_counter() - started,
+            "success",
+        )
+        return output_path
+
     account_id, api_token = _credentials()
     descriptions = {
         path.name: _reference_description(path, shot_id, account_id, api_token)
         for path in ref_paths
-    }
+    } if mode == "ai" else {}
     inputs = _cache_inputs(
         shot, ref_paths, image_model, reference_model, descriptions, None
     )
@@ -585,19 +909,16 @@ def generate_keyframe(
     prompt = _build_prompt(shot, ref_paths, descriptions)
     payload: dict[str, Any] = {"prompt": prompt, "steps": 4}
     if image_model == CONDITIONING_MODEL:
-        contact_sheet = _reference_contact_sheet(ref_paths)
         payload = {
             "prompt": prompt,
-            "negative_prompt": (
-                "cropped head, cropped face, missing face, blank face, extra person, "
-                "deformed anatomy, extra fingers, unrequested prop, musical instrument"
-            ),
-            "image_b64": base64.b64encode(contact_sheet).decode("ascii"),
+            **{
+                f"input_image_{index}": _reference_image_bytes(path)
+                for index, path in enumerate(ref_paths)
+            },
             "width": 1024,
             "height": 1024,
             "seed": int(shot["seed"]),
-            "num_steps": 20,
-            "strength": 0.6,
+            "guidance": 4.0,
         }
 
     quality_attempt = 0
@@ -679,19 +1000,31 @@ def _validated_file(path: Path, shot_id: str) -> bool:
 
 def has_current_keyframe(shot: dict[str, Any], title: str | None = None) -> bool:
     """Check that the current keyframe cache matches the shot and its reference files."""
-    image_model = (
-        "programmatic-disclosure-card"
-        if shot["shot_type"] == "ai_disclosure_end_card"
-        else _setting("CF_IMAGE_MODEL", DEFAULT_IMAGE_MODEL)
-    )
-    reference_model = _setting("CF_REFERENCE_MODEL", DEFAULT_REFERENCE_MODEL)
+    try:
+        mode = _keyframe_mode()
+    except ValueError:
+        return False
+    image_model = "programmatic-disclosure-card"
+    reference_model = "not-used"
+    if shot["shot_type"] != "ai_disclosure_end_card":
+        if mode == "reference_locked":
+            image_model = LOCKED_COMPOSITION_MODEL
+        elif mode == "reference_conditioned":
+            image_model = CONDITIONING_MODEL
+        else:
+            image_model = _setting("CF_IMAGE_MODEL", DEFAULT_IMAGE_MODEL)
+            reference_model = _setting("CF_REFERENCE_MODEL", DEFAULT_REFERENCE_MODEL)
     if not image_model or not reference_model:
         return False
     try:
         paths = [_reference_path(filename) for filename in shot["refs"]]
         descriptions = (
             {}
-            if shot["shot_type"] == "ai_disclosure_end_card"
+            if (
+                shot["shot_type"] == "ai_disclosure_end_card"
+                or image_model == LOCKED_COMPOSITION_MODEL
+                or image_model == CONDITIONING_MODEL
+            )
             else {
                 path.name: str(
                     load_cached_output(

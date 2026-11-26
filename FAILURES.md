@@ -74,3 +74,15 @@ spaced speaker label and separates Girma's and Eden's turns onto separate
 lines. Captions use compact bottom-safe styles (16:9: font size 14, margin 16;
 9:16: font size 10, margin 18). The SRT and both exports were regenerated
 together; the standalone SRT and selectable subtitle stream remain available.
+
+### Character and room visual drift
+
+Review of the generated keyframes found that text-to-image prompts and
+reference captions did not reliably preserve Eden's hair and dress, Girma's
+hair and patterned garment, or the exact supplied room details. This was a
+limitation of the text-to-image workflow, not a missing reference filename.
+The default keyframe mode now uses the full approved character and location
+images directly in a deterministic composition, with no AI redraw. Character
+poses therefore remain fixed; new physical actions are not depicted. AI
+keyframe generation remains available only as an explicit `KEYFRAME_MODE=ai`
+opt-in and may still introduce appearance changes.

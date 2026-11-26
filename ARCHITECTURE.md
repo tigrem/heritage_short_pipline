@@ -18,8 +18,12 @@ is within 60–90 seconds. The current storyboard totals 85.36 seconds.
 `python -m pipeline.run --stage all` validates first, then runs:
 
 1. **narration** — generate or reuse one Amharic WAV per shot.
-2. **keyframes** — describe only the shot's listed reference images, add
-   filename-specific visual anchors, then generate and quality-check its PNG.
+2. **keyframes** — by default, compose the exact listed character and location
+   images into a deterministic still. Character reference photos are scaled
+   proportionally as complete portrait panels; no AI redraw changes faces,
+   clothing, hair, or poses. The location image is the only scene backdrop.
+   `KEYFRAME_MODE=ai` opts back into Cloudflare image generation, which can
+   alter visual details and does not guarantee identity consistency.
 3. **shots** — render cached 16:9 and 9:16 variants with contained foreground
    imagery, blurred backgrounds, and subtle motion.
 4. **music** — create or reuse an instrumental score matching the film length.
@@ -36,8 +40,10 @@ aspect ratios.
 ## SHA-256 caching
 
 `pipeline/cache.py` canonicalizes stage, shot ID, settings, prompt values, and
-the SHA-256 digest of every file input. Cache entries live under
-`outputs/cache/`, which is ignored by Git. Landscape and portrait clips use
+the SHA-256 digest of every file input. In reference-locked mode, the cache
+depends on the supplied reference-file contents, selected location, and
+composition version; keyframe prompts do not alter the locked composition.
+Cache entries live under `outputs/cache/`, which is ignored by Git. Landscape and portrait clips use
 separate stage keys. A cache entry is reused only when its input hash and
 recorded output digest match. The log summarizer distinguishes cache-hit events
 from actual model/tool executions; its current cache-entry total is a snapshot,

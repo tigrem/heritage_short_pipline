@@ -119,3 +119,19 @@ feedback; they are production notes, not controlled scientific trials.
   executed model/tool calls.
 - **Keep/Revert:** Keep; retain cache and log summaries as part of routine
   production checks.
+
+## 11. Reference-locked appearance consistency
+
+- **Hypothesis:** Reusing the approved character and room images directly will
+  prevent the physical appearance, clothing, hair, and location details from
+  drifting between shots.
+- **Change:** Made `reference_locked` keyframe composition the default. It uses
+  complete, proportionally scaled character source images as portrait panels
+  over the selected supplied room image. Cloud image generation is opt-in via
+  `KEYFRAME_MODE=ai`.
+- **Result:** The ten keyframes use only the four approved files and do not
+  redraw the characters. Their original poses remain fixed, so actions such as
+  holding hands are not shown literally.
+- **Keep/Revert:** Keep for the requirement of exact visual consistency;
+  revisit only if a future workflow can preserve likeness and wardrobe while
+  supporting new poses.

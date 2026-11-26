@@ -77,17 +77,16 @@ put off.
 - `python -m pipeline.run --stage all` validates the storyboard, generates or
   reuses narration, reference-aware keyframes, motion shots, and a full-length
   instrumental score, then assembles the final film.
-- The default keyframe model is Cloudflare Workers AI
-  `@cf/black-forest-labs/flux-1-schnell`. Since Flux Schnell is text-to-image,
-  listed reference images are passed to a multimodal caption model,
-  `@cf/meta/llama-4-scout-17b-16e-instruct`; filename-specific character and
-  location anchors are also included in each keyframe prompt. Selecting
-  `@cf/stabilityai/stable-diffusion-xl-base-1.0` enables image conditioning with
-  a contact sheet made only from that shot's listed refs. Both paths use
-  content-based caches and image integrity checks; rejected generations are
-  retried and persistent quality failures are recorded in `FAILURES.md`. The
-  current Flux API rejects its documented `seed` field, so the shot seed is
-  included in the prompt, cache key, and run log instead.
+- The default keyframe mode now composes the exact supplied character photo(s)
+  over the exact selected room photo. Full source photos are scaled
+  proportionally and kept as complete panels; this avoids AI changes to body,
+  face, hair, clothing, pose, or furniture. It also means the people do not
+  perform new gestures: story actions such as holding hands are conveyed by
+  narration and subtitles rather than depicted literally. Set
+  `KEYFRAME_MODE=ai` only if you accept that image generation may change
+  appearance. The earlier Flux experiment remains documented below: Flux
+  rejected its `seed` request field, so the seed was kept in the prompt, cache
+  key, and run log instead.
 - `MOTION_BACKEND=ffmpeg` renders distinct 16:9 and 9:16 clips. Each full
   keyframe is contained inside a blurred, darkened background with a small
   safe margin and only subtle movement, avoiding center crops of heads/faces.
